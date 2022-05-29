@@ -8,7 +8,7 @@ library("tseries")
 
 metro <- read.csv("datasets/臺北市捷運客運概況按月別時間數列統計資料.csv")[,c(1,2)]
 head(metro)
-metro.ts <- ts(metro[1:264,2], start=c(1998, 1), frequency=12)
+metro.ts <- ts(metro[1:252,2], start=c(1998, 1), frequency=12) # 264-12=252
 plot(metro.ts)
 # Observe that there is trend and non-constant variance
 
@@ -34,33 +34,18 @@ model3 <- sarima(sddoriginalts, 0, 1, 0, 2, 1, 1, 12)
 model4 <- sarima(sddoriginalts, 1, 1, 1, 2, 1, 1, 12)
 model5 <- sarima(sddoriginalts, 3, 1, 1, 2, 1, 1, 12)
 
+# Teacher's suggestion
+model6 <- sarima(sddoriginalts, 3, 1, 0, 2, 1, 0, 12)
+model7 <- sarima(sddoriginalts, 3, 1, 0, 2, 1, 1, 12)
+model8 <- sarima(sddoriginalts, 3, 1, 1, 2, 1, 0, 12)
+
 model1$AIC # 33.57524
 model2$AIC # 33.30868
 model3$AIC # 33.09823
 model4$AIC # 32.15482
 model5$AIC # 32.13897 (<-)
 
-
-
-# The log version
-
-logts <- log(metro.ts) # non-constant variance
-plot(logts)
-dlogts <- diff(logts) 
-plot(dlogts)
-adf.test(dlogts)
-acf2(dlogts, max.lag = 100) # Observe that there is seasonality
-sddlogts <- diff(dlogts, 12)
-plot(sddlogts)
-acf2(sddlogts)
-
-fit1 <- sarima(sddlogts, 0, 1, 0, 0, 1, 1, 12)
-fit2 <- sarima(sddlogts, 0, 1, 0, 1, 1, 1, 12)
-fit3 <- sarima(sddlogts, 0, 1, 0, 2, 1, 1, 12)
-fit4 <- sarima(sddlogts, 3, 1, 3, 2, 1, 1, 12)
-
-fit1$AIC # -0.9007193
-fit2$AIC # -1.179481
-fit3$AIC # -1.343357
-fit4$AIC # -2.064412
+model6$AIC # 32.76749
+model7$AIC # 32.42975
+model8$AIC # 32.47516
 
