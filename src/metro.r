@@ -28,22 +28,25 @@ sddoriginalts <- diff(doriginalts, 12)
 plot(sddoriginalts)
 acf2(sddoriginalts)
 
-model1 <- sarima(metro.ts, 0, 1, 0, 0, 1, 1, 12)
-model2 <- sarima(metro.ts, 0, 1, 0, 1, 1, 1, 12)
-model3 <- sarima(metro.ts, 0, 1, 0, 2, 1, 1, 12)
-model4 <- sarima(metro.ts, 1, 1, 1, 2, 1, 1, 12)
+model1 <- sarima(metro.ts, 0, 1, 0, 2, 1, 1, 12)
+model2 <- sarima(metro.ts, 0, 1, 0, 2, 1, 0, 12)
 
-# Teacher's suggestion
-model6 <- sarima(metro.ts, 3, 1, 0, 2, 1, 0, 12)
-model7 <- sarima(metro.ts, 3, 1, 0, 2, 1, 1, 12)
-model8 <- sarima(metro.ts, 3, 1, 1, 2, 1, 0, 12)
+model3 <- sarima(metro.ts, 0, 1, 1, 2, 1, 1, 12)
+model4 <- sarima(metro.ts, 0, 1, 1, 2, 1, 0, 12)
 
-model1$AIC # 31.97018
-model2$AIC # 31.9448
-model3$AIC # 31.9265
-model4$AIC # 31.8205 <-
+model5 <- sarima(metro.ts, 1, 1, 1, 2, 1, 1, 12) # Previous best
+model6 <- sarima(metro.ts, 1, 1, 1, 2, 1, 0, 12)
 
-model6$AIC # 31.84111
-model7$AIC # 31.83588
-model8$AIC # 31.83882
 
+
+model1$AIC # 31.9265
+model2$AIC # 31.92074
+model3$AIC # 31.82654
+model4$AIC # 31.83403
+model5$AIC # 31.8205  <-
+model6$AIC # 31.82421
+
+model3 # Figure 17
+model4 # Figure 18
+model5 # Figure 19
+model6 # Figure 20
