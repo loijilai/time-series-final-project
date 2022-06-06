@@ -53,6 +53,7 @@ model4 # Figure 18
 model5 # Figure 19
 model6 # Figure 20
 
+# Branch W
 #forecast
 m3 <- sarima.for(metro.ts, n.ahead = 12, 0, 1, 1, 2, 1, 1, 12)
 m4 <- sarima.for(metro.ts, n.ahead = 12, 0, 1, 1, 2, 1, 0, 12)
@@ -67,4 +68,22 @@ RMSE(a, m4$pred)#1828481
 RMSE(a, m5$pred)#1695756
 RMSE(a, m6$pred)#1830158
 
+
+# Branch Lai
+fcast <- predict(model5$fit, n.ahead=12)
+
+fcast$pred
+fcast.U <- fcast$pred + 1.96*fcast$se
+fcast.L <- fcast$pred - 1.96*fcast$se
+
+fcast.L
+fcast.U
+metro[253:264, 2]
+
+# par(mar=c(3,3,2,1))
+plot(c(metro.ts[200:252], rep(NA,12)), type = "l")
+lines(length(metro.ts[200:252])+(1:12), fcast$pred, col=2)
+lines(length(metro.ts[200:252])+(1:12), fcast.U, col=3, lty=2)
+lines(length(metro.ts[200:252])+(1:12), fcast.L, col=3, lty=2)
+points(length(metro.ts[200:252])+(1:12), metro[253:264, 2], pch=16)
 
