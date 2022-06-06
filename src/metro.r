@@ -51,20 +51,52 @@ model4 # Figure 18
 model5 # Figure 19
 model6 # Figure 20
 
-fcast <- predict(model5$fit, n.ahead=12)
+fcast1 <- predict(model3$fit, n.ahead=12)
 
-fcast$pred
-fcast.U <- fcast$pred + 1.96*fcast$se
-fcast.L <- fcast$pred - 1.96*fcast$se
+fcast1$pred
+fcast1.U <- fcast1$pred + 1.96*fcast1$se
+fcast1.L <- fcast1$pred - 1.96*fcast1$se
 
-fcast.L
-fcast.U
-
+min(fcast1.L)
+max(fcast1.U)
 metro[253:264, 2]
-
 # par(mar=c(3,3,2,1))
-plot(c(metro.ts[200:252], rep(NA,12)), type = "l")
-lines(length(metro.ts[200:252])+(1:12), fcast$pred, col=2)
-lines(length(metro.ts[200:252])+(1:12), fcast.U, col=3, lty=2)
-lines(length(metro.ts[200:252])+(1:12), fcast.L, col=3, lty=2)
+plot(c(metro.ts[200:252], rep(NA,12)), ylim = c(54620801, 81326166), type = "l")
+lines(length(metro.ts[200:252])+(1:12), fcast1$pred, col=2)
+lines(length(metro.ts[200:252])+(1:12), fcast1.U, col=3, lty=2)
+lines(length(metro.ts[200:252])+(1:12), fcast1.L, col=3, lty=2)
 points(length(metro.ts[200:252])+(1:12), metro[253:264, 2], pch=16)
+
+
+# Model 5
+fcast2 <- predict(model5$fit, n.ahead=12)
+
+fcast2$pred
+fcast2.U <- fcast2$pred + 1.96*fcast2$se
+fcast2.L <- fcast2$pred - 1.96*fcast2$se
+
+min(fcast2.L)
+max(fcast2.U)
+metro[253:264, 2]
+# par(mar=c(3,3,2,1))
+plot(c(metro.ts[200:252], rep(NA,12)), ylim = c(54801573, 80205193), type = "l")
+lines(length(metro.ts[200:252])+(1:12), fcast2$pred, col=2)
+lines(length(metro.ts[200:252])+(1:12), fcast2.U, col=3, lty=2)
+lines(length(metro.ts[200:252])+(1:12), fcast2.L, col=3, lty=2)
+points(length(metro.ts[200:252])+(1:12), metro[253:264, 2], pch=16)
+
+# Branch W
+#forecast
+m3 <- sarima.for(metro.ts, n.ahead = 12, 0, 1, 1, 2, 1, 1, 12)
+m4 <- sarima.for(metro.ts, n.ahead = 12, 0, 1, 1, 2, 1, 0, 12)
+m5 <- sarima.for(metro.ts, n.ahead = 12, 1, 1, 1, 2, 1, 1, 12)
+m6 <- sarima.for(metro.ts, n.ahead = 12, 1, 1, 1, 2, 1, 0, 12)
+m.ts <- ts(metro[1:264,2], start=c(1998, 1), frequency=12)
+lines(m.ts) #compare to actual values
+
+a <- unlist(metro[253:264, 2], use.names=FALSE)
+#MSE is too large
+RMSE(a, m3$pred)#1679145
+RMSE(a, m4$pred)#1828481
+RMSE(a, m5$pred)#1695756
+RMSE(a, m6$pred)#1830158
