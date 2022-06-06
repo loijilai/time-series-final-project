@@ -51,6 +51,7 @@ model4 # Figure 18
 model5 # Figure 19
 model6 # Figure 20
 
+# Model 3 Prediction
 fcast1 <- predict(model3$fit, n.ahead=12)
 
 fcast1$pred
@@ -68,7 +69,7 @@ lines(length(metro.ts[200:252])+(1:12), fcast1.L, col=3, lty=2)
 points(length(metro.ts[200:252])+(1:12), metro[253:264, 2], pch=16)
 
 
-# Model 5
+# Model 5 Prediction
 fcast2 <- predict(model5$fit, n.ahead=12)
 
 fcast2$pred
