@@ -8,7 +8,7 @@ library("tseries")
 
 metro <- read.csv("datasets/臺北市捷運客運概況按月別時間數列統計資料.csv")[,c(1,2)]
 head(metro)
-metro.ts <- ts(metro[1:264,2], start=c(1998, 1), frequency=12)
+metro.ts <- ts(metro[1:252,2], start=c(1998, 1), frequency=12) # 264-12=252
 plot(metro.ts)
 # Observe that there is trend and non-constant variance
 
@@ -28,39 +28,43 @@ sddoriginalts <- diff(doriginalts, 12)
 plot(sddoriginalts)
 acf2(sddoriginalts)
 
-model1 <- sarima(sddoriginalts, 0, 1, 0, 0, 1, 1, 12)
-model2 <- sarima(sddoriginalts, 0, 1, 0, 1, 1, 1, 12)
-model3 <- sarima(sddoriginalts, 0, 1, 0, 2, 1, 1, 12)
-model4 <- sarima(sddoriginalts, 1, 1, 1, 2, 1, 1, 12)
-model5 <- sarima(sddoriginalts, 3, 1, 1, 2, 1, 1, 12)
+model1 <- sarima(metro.ts, 0, 1, 0, 2, 1, 1, 12)
+model2 <- sarima(metro.ts, 0, 1, 0, 2, 1, 0, 12)
 
-model1$AIC # 33.57524
-model2$AIC # 33.30868
-model3$AIC # 33.09823
-model4$AIC # 32.15482
-model5$AIC # 32.13897 (<-)
+model3 <- sarima(metro.ts, 0, 1, 1, 2, 1, 1, 12)
+model4 <- sarima(metro.ts, 0, 1, 1, 2, 1, 0, 12)
+
+model5 <- sarima(metro.ts, 1, 1, 1, 2, 1, 1, 12) # Previous best
+model6 <- sarima(metro.ts, 1, 1, 1, 2, 1, 0, 12)
 
 
 
-# The log version
+model1$AIC # 31.9265
+model2$AIC # 31.92074
+model3$AIC # 31.82654
+model4$AIC # 31.83403
+model5$AIC # 31.8205  <-
+model6$AIC # 31.82421
 
-logts <- log(metro.ts) # non-constant variance
-plot(logts)
-dlogts <- diff(logts) 
-plot(dlogts)
-adf.test(dlogts)
-acf2(dlogts, max.lag = 100) # Observe that there is seasonality
-sddlogts <- diff(dlogts, 12)
-plot(sddlogts)
-acf2(sddlogts)
+model3 # Figure 17
+model4 # Figure 18
+model5 # Figure 19
+model6 # Figure 20
 
-fit1 <- sarima(sddlogts, 0, 1, 0, 0, 1, 1, 12)
-fit2 <- sarima(sddlogts, 0, 1, 0, 1, 1, 1, 12)
-fit3 <- sarima(sddlogts, 0, 1, 0, 2, 1, 1, 12)
-fit4 <- sarima(sddlogts, 3, 1, 3, 2, 1, 1, 12)
+fcast <- predict(model5$fit, n.ahead=12)
 
-fit1$AIC # -0.9007193
-fit2$AIC # -1.179481
-fit3$AIC # -1.343357
-fit4$AIC # -2.064412
+fcast$pred
+fcast.U <- fcast$pred + 1.96*fcast$se
+fcast.L <- fcast$pred - 1.96*fcast$se
 
+fcast.L
+fcast.U
+
+metro[253:264, 2]
+
+# par(mar=c(3,3,2,1))
+plot(c(metro.ts[200:252], rep(NA,12)), type = "l")
+lines(length(metro.ts[200:252])+(1:12), fcast$pred, col=2)
+lines(length(metro.ts[200:252])+(1:12), fcast.U, col=3, lty=2)
+lines(length(metro.ts[200:252])+(1:12), fcast.L, col=3, lty=2)
+points(length(metro.ts[200:252])+(1:12), metro[253:264, 2], pch=16)
