@@ -80,7 +80,7 @@ min(fcast2.L)
 max(fcast2.U)
 metro[253:264, 2]
 # par(mar=c(3,3,2,1))
-plot(c(metro.ts[200:252], rep(NA,12)), ylim = c(54801573, 80205193), type = "l")
+plot(c(metro.ts[200:252], rep(NA,12)), ylim = c(54620801, 81326166), type = "l")
 lines(length(metro.ts[200:252])+(1:12), fcast2$pred, col=2)
 lines(length(metro.ts[200:252])+(1:12), fcast2.U, col=3, lty=2)
 lines(length(metro.ts[200:252])+(1:12), fcast2.L, col=3, lty=2)
