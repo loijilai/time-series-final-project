@@ -1,5 +1,5 @@
-#setwd("/home/loijilai/CS-hub/myR/time-series/time-series-final-project")
-setwd("D:/WEN/1102course/Time Series Analysis/project/time-series-final-project")
+setwd("/home/loijilai/CS-hub/myR/time-series/time-series-final-project")
+#setwd("D:/WEN/1102course/Time Series Analysis/project/time-series-final-project")
 # download from: https://data.taipei/dataset/detail?id=a0183350-7951-4f4b-993d-0e8ebae04b4c
 library("tidyverse")
 library("astsa")
@@ -7,12 +7,11 @@ library("forecast")
 library("tseries")
 library("MLmetrics")
 
+# Part 1. Data Preprocessing
 metro <- read_csv("datasets/臺北市捷運客運概況按月別時間數列統計資料.csv")[,c(1,2)]
 head(metro)
 metro.ts <- ts(metro[1:252,2], start=c(1998, 1), frequency=12) # 264-12=252
 plot(metro.ts)
-# Observe that there is trend and non-constant variance
-
 # Plot the time series
 originalts <- metro.ts
 plot(originalts)
@@ -20,103 +19,94 @@ plot(originalts)
 # if only do seasonal differencing
 sdoriginalts <- diff(originalts, 12)
 plot(sdoriginalts)
-adf.test(sdoriginalts) #p-value = 0.0165 < 0.05
+adf.test(sdoriginalts) #p-value = 0.0165 < 0.05, reject H0: non-stationary
 acf2(sdoriginalts)
 #only doing seasonal differecing seems an acceptable choice
 
-# Detrend by differencing once
-doriginalts <- diff(originalts)
-plot(doriginalts)
-plot(doriginalts[150:180], type = 'l') # Seasonality present
+# ---------------------------------------------------------------------
 
-adf.test(doriginalts)
-acf2(doriginalts, max.lag = 100)
+# Part 2. Model Fitting
 
-sddoriginalts <- diff(doriginalts, 12)
-plot(sddoriginalts)
-acf2(sddoriginalts)
+# 1. First perspective of the seasonal terms: (2, 1, 0)
 
-model1 <- sarima(metro.ts, 0, 1, 0, 2, 1, 1, 12)
-model2 <- sarima(metro.ts, 0, 1, 0, 2, 1, 0, 12)
+# Adding ordinary MA terms
+modelA1 <- sarima(metro.ts, 0, 0, 1, 2, 1, 0, 12)
+# Bad Resiual ACF and Ljung-Box test -> reject
+modelA2 <- sarima(metro.ts, 0, 0, 2, 2, 1, 0, 12)
+# Not much improvement from modelA1 -> reject
 
-model3 <- sarima(metro.ts, 0, 1, 1, 2, 1, 1, 12)
-model4 <- sarima(metro.ts, 0, 1, 1, 2, 1, 0, 12)
+# Adding ordinary AR terms
+modelA3 <- sarima(metro.ts, 1, 0, 0, 2, 1, 0, 12) 
+# Bad Ljung-Box test -> reject
+modelA4 <- sarima(metro.ts, 2, 0, 0, 2, 1, 0, 12) 
+# Good Residual ACF and Ljung-Box test -> accept
+modelA5 <- sarima(metro.ts, 3, 0, 0, 2, 1, 0, 12) 
+# The improvement from modelA4 is not obvious, 
+# maybe modelA4 is preferable, but I still preserve this one -> accept
 
-model5 <- sarima(metro.ts, 1, 1, 1, 2, 1, 1, 12) # Previous best
-model6 <- sarima(metro.ts, 1, 1, 1, 2, 1, 0, 12)
-
-#try some new models
-model7 <- sarima(metro.ts, 2, 0, 0, 2, 1, 0, 12) # can consider this one
-#simpler and the residuals seem better
-
-#teacher's suggestion:AR(5) or MA(5)
-model8 <- sarima(metro.ts, 5, 0, 0, 2, 1, 0, 12)
-model9 <- sarima(metro.ts, 0, 0, 5, 2, 1, 0, 12) #can be ignored
-
-model10 <- sarima(metro.ts, 4, 0, 0, 2, 1, 0, 12)
-
-model1$AIC # 31.9265
-model2$AIC # 31.92074
-model3$AIC # 31.82654
-model4$AIC # 31.83403
-model5$AIC # 31.8205  <-
-model6$AIC # 31.82421
+# Adding both ordinary AR and MA
+modelA6 <- sarima(metro.ts, 2, 0, 1, 2, 1, 0, 12) 
+# Slightly improve the residual analysis but not obvious -> accept
 
 
-model3 # Figure 17
-model4 # Figure 18
-model5 # Figure 19
-model6 # Figure 20
+# 2. Second perspective of the seasonal terms: (0, 1, 1)
 
-# Model 3 Prediction
-fcast1 <- predict(model3$fit, n.ahead=12)
+# Adding ordinary MA terms
+modelB1 <- sarima(metro.ts, 0, 0, 1, 0, 1, 1, 12) 
+# Bad Residual ACF and Ljung-Box test -> reject
+modelB2 <- sarima(metro.ts, 0, 0, 2, 0, 1, 1, 12) 
+# Same problem as model modelB1 -> reject
+modelB3 <- sarima(metro.ts, 0, 0, 5, 0, 1, 1, 12) 
+# Slightly better Residual ACF but Ljung-Box test still fails -> reject
 
-fcast1$pred
-fcast1.U <- fcast1$pred + 1.96*fcast1$se
-fcast1.L <- fcast1$pred - 1.96*fcast1$se
+# Conclusion: only adding ordinary MA does not pass the residual analysis
 
-min(fcast1.L)
-max(fcast1.U)
-metro[253:264, 2]
-# par(mar=c(3,3,2,1))
-plot(c(metro.ts[200:252], rep(NA,12)), ylim = c(54620801, 81326166), type = "l")
-lines(length(metro.ts[200:252])+(1:12), fcast1$pred, col=2)
-lines(length(metro.ts[200:252])+(1:12), fcast1.U, col=3, lty=2)
-lines(length(metro.ts[200:252])+(1:12), fcast1.L, col=3, lty=2)
-points(length(metro.ts[200:252])+(1:12), metro[253:264, 2], pch=16)
+# Adding ordinary AR terms
+modelB4 <- sarima(metro.ts, 1, 0, 0, 0, 1, 1, 12)
+# Good residual ACF but Ljung-Box test fails -> reject
+modelB5 <- sarima(metro.ts, 2, 0, 0, 0, 1, 1, 12) 
+# Good residual ACF and Ljung-Box -> accept
+modelB6 <- sarima(metro.ts, 3, 0, 0, 0, 1, 1, 12)
+# There is not much improvement from model14
+# So the order of ordinary AR may be too high in modelB6
+# Conclusion: modelB5 may be a better choice because it is simpler -> accept
+
+# Adding both ordinary AR and MA
+modelB7 <- sarima(metro.ts, 2, 0, 1, 0, 1, 1, 12)
+# Not much improvement from modelB5 -> accept
+modelB8 <- sarima(metro.ts, 2, 0, 2, 0, 1, 1, 12)
+# Not much improvement from modelB5 -> reject
 
 
-# Model 5 Prediction
-fcast2 <- predict(model5$fit, n.ahead=12)
+# Conclusion in model fitting:
+# From perspective 1.
+modelA4$AIC # 31.84105
+modelA5$AIC # 31.84204
+modelA6$AIC # 31.83081  
 
-fcast2$pred
-fcast2.U <- fcast2$pred + 1.96*fcast2$se
-fcast2.L <- fcast2$pred - 1.96*fcast2$se
+# From perspective 2.
+modelB5$AIC # 31.85006
+modelB6$AIC # 31.85451
+modelB7$AIC # 31.84526  
 
-min(fcast2.L)
-max(fcast2.U)
-metro[253:264, 2]
-# par(mar=c(3,3,2,1))
-plot(c(metro.ts[200:252], rep(NA,12)), ylim = c(54620801, 81326166), type = "l")
-lines(length(metro.ts[200:252])+(1:12), fcast2$pred, col=2)
-lines(length(metro.ts[200:252])+(1:12), fcast2.U, col=3, lty=2)
-lines(length(metro.ts[200:252])+(1:12), fcast2.L, col=3, lty=2)
-points(length(metro.ts[200:252])+(1:12), metro[253:264, 2], pch=16)
+# ---------------------------------------------------------------------
 
-# Branch W
+# Part 3. Prediction
 #forecast
-m3 <- sarima.for(metro.ts, n.ahead = 12, 0, 1, 1, 2, 1, 1, 12)
-m4 <- sarima.for(metro.ts, n.ahead = 12, 0, 1, 1, 2, 1, 0, 12)
-m5 <- sarima.for(metro.ts, n.ahead = 12, 1, 1, 1, 2, 1, 1, 12)
-m6 <- sarima.for(metro.ts, n.ahead = 12, 1, 1, 1, 2, 1, 0, 12)
-m7 <- sarima.for(metro.ts, n.ahead = 12, 2, 0, 0, 2, 1, 0, 12)
+fcastA4 <- sarima.for(metro.ts, n.ahead = 12, 2, 0, 0, 2, 1, 0, 12)
+fcastA5 <- sarima.for(metro.ts, n.ahead = 12, 3, 0, 0, 2, 1, 0, 12)
+fcastA6 <- sarima.for(metro.ts, n.ahead = 12, 2, 0, 1, 2, 1, 0, 12)
+fcastB5 <- sarima.for(metro.ts, n.ahead = 12, 2, 0, 0, 0, 1, 1, 12)
+fcastB6 <- sarima.for(metro.ts, n.ahead = 12, 3, 0, 0, 0, 1, 1, 12)
+fcastB7 <- sarima.for(metro.ts, n.ahead = 12, 2, 0, 1, 0, 1, 1, 12)
 m.ts <- ts(metro[1:264,2], start=c(1998, 1), frequency=12)
 lines(m.ts) #compare to actual values
 
-a <- unlist(metro[253:264, 2], use.names=FALSE)
+test_data <- unlist(metro[253:264, 2], use.names=FALSE)
 #MSE is too large
-RMSE(a, m3$pred)#1679145
-RMSE(a, m4$pred)#1828481
-RMSE(a, m5$pred)#1695756
-RMSE(a, m6$pred)#1830158
-RMSE(a, m7$pred)#1738694
+RMSE(test_data, fcastA4$pred) # 1738694
+RMSE(test_data, fcastA5$pred) # 1724152 <-
+RMSE(test_data, fcastA6$pred) # 1691764
+RMSE(test_data, fcastB5$pred) # 1881868
+RMSE(test_data, fcastB6$pred) # 1862180 <-
+RMSE(test_data, fcastB7$pred) # 1790835
