@@ -27,15 +27,15 @@ acf2(sdoriginalts)
 
 # Part 2. Model Fitting
 
-# 1. First perspective of the seasonal terms: (2, 1, 0)
+# 1. First perspective of the seasonal order: SARIMA(2, 1, 0)
 
-# Adding ordinary MA terms
+# Adding ordinary MA
 fitA1 <- sarima(metro.ts, 0, 0, 1, 2, 1, 0, 12)
 # Bad Resiual ACF and Ljung-Box test -> reject
 fitA2 <- sarima(metro.ts, 0, 0, 2, 2, 1, 0, 12)
 # Not much improvement from fitA1 -> reject
 
-# Adding ordinary AR terms
+# Adding ordinary AR
 fitA3 <- sarima(metro.ts, 1, 0, 0, 2, 1, 0, 12) 
 # Bad Ljung-Box test -> reject
 fitA4 <- sarima(metro.ts, 2, 0, 0, 2, 1, 0, 12) 
@@ -52,9 +52,9 @@ fitA8 <- sarima(metro.ts, 1, 0, 2, 2, 1, 0, 12)
 fitA9 <- sarima(metro.ts, 2, 0, 2, 2, 1, 0, 12) 
 
 
-# 2. Second perspective of the seasonal terms: (0, 1, 1)
+# 2. Second perspective of the seasonal order: SARIMA(0, 1, 1)
 
-# Adding ordinary MA terms
+# Adding ordinary MA
 fitB1 <- sarima(metro.ts, 0, 0, 1, 0, 1, 1, 12) 
 # Bad Residual ACF and Ljung-Box test -> reject
 fitB2 <- sarima(metro.ts, 0, 0, 2, 0, 1, 1, 12) 
@@ -64,7 +64,7 @@ fitB3 <- sarima(metro.ts, 0, 0, 5, 0, 1, 1, 12)
 
 # Conclusion: only adding ordinary MA does not pass the residual analysis
 
-# Adding ordinary AR terms
+# Adding ordinary AR
 fitB4 <- sarima(metro.ts, 1, 0, 0, 0, 1, 1, 12)
 # Good residual ACF but Ljung-Box test fails -> reject
 fitB5 <- sarima(metro.ts, 2, 0, 0, 0, 1, 1, 12) 
@@ -123,9 +123,9 @@ fitB6 # Fail parameter estimation at AR3 -> Reject
 # ARIMA(1, 0, 1)*(0, 1, 1) 
 fitB7 # Pass parameter estimation -> Accept
 # ARIMA(2, 0, 1)*(0, 1, 1) 
-fitB8 # Fail parameter estimation at AR3 -> Reject
+fitB8 # Fail parameter estimation -> Reject
 # ARIMA(1, 0, 2)*(0, 1, 1) 
-fitB9 # Fail parameter estimation at AR3 -> Reject
+fitB9 # Fail parameter estimation -> Reject
 
 # ---------------------------------------------------------------------
 
