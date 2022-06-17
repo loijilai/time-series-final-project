@@ -30,83 +30,126 @@ acf2(sdoriginalts)
 # 1. First perspective of the seasonal terms: (2, 1, 0)
 
 # Adding ordinary MA terms
-modelA1 <- sarima(metro.ts, 0, 0, 1, 2, 1, 0, 12)
+fitA1 <- sarima(metro.ts, 0, 0, 1, 2, 1, 0, 12)
 # Bad Resiual ACF and Ljung-Box test -> reject
-modelA2 <- sarima(metro.ts, 0, 0, 2, 2, 1, 0, 12)
-# Not much improvement from modelA1 -> reject
+fitA2 <- sarima(metro.ts, 0, 0, 2, 2, 1, 0, 12)
+# Not much improvement from fitA1 -> reject
 
 # Adding ordinary AR terms
-modelA3 <- sarima(metro.ts, 1, 0, 0, 2, 1, 0, 12) 
+fitA3 <- sarima(metro.ts, 1, 0, 0, 2, 1, 0, 12) 
 # Bad Ljung-Box test -> reject
-modelA4 <- sarima(metro.ts, 2, 0, 0, 2, 1, 0, 12) 
-# Good Residual ACF and Ljung-Box test -> accept
-modelA5 <- sarima(metro.ts, 3, 0, 0, 2, 1, 0, 12) 
-# The improvement from modelA4 is not obvious, 
-# maybe modelA4 is preferable, but I still preserve this one -> accept
+fitA4 <- sarima(metro.ts, 2, 0, 0, 2, 1, 0, 12) 
+# Good residual ACF and Ljung-Box test -> accept
+fitA5 <- sarima(metro.ts, 3, 0, 0, 2, 1, 0, 12) 
+# The improvement from fitA4 is not obvious, 
+# maybe fitA4 is preferable, but I still preserve this one -> accept
 
 # Adding both ordinary AR and MA
-modelA6 <- sarima(metro.ts, 2, 0, 1, 2, 1, 0, 12) 
-# Slightly improve the residual analysis but not obvious -> accept
+# Accept all models because I only consider residual ACF and Ljung-Box result here
+fitA6 <- sarima(metro.ts, 1, 0, 1, 2, 1, 0, 12) 
+fitA7 <- sarima(metro.ts, 2, 0, 1, 2, 1, 0, 12) 
+fitA8 <- sarima(metro.ts, 1, 0, 2, 2, 1, 0, 12) 
+fitA9 <- sarima(metro.ts, 2, 0, 2, 2, 1, 0, 12) 
 
 
 # 2. Second perspective of the seasonal terms: (0, 1, 1)
 
 # Adding ordinary MA terms
-modelB1 <- sarima(metro.ts, 0, 0, 1, 0, 1, 1, 12) 
+fitB1 <- sarima(metro.ts, 0, 0, 1, 0, 1, 1, 12) 
 # Bad Residual ACF and Ljung-Box test -> reject
-modelB2 <- sarima(metro.ts, 0, 0, 2, 0, 1, 1, 12) 
-# Same problem as model modelB1 -> reject
-modelB3 <- sarima(metro.ts, 0, 0, 5, 0, 1, 1, 12) 
+fitB2 <- sarima(metro.ts, 0, 0, 2, 0, 1, 1, 12) 
+# Same problem as fitB1-> reject
+fitB3 <- sarima(metro.ts, 0, 0, 5, 0, 1, 1, 12) 
 # Slightly better Residual ACF but Ljung-Box test still fails -> reject
 
 # Conclusion: only adding ordinary MA does not pass the residual analysis
 
 # Adding ordinary AR terms
-modelB4 <- sarima(metro.ts, 1, 0, 0, 0, 1, 1, 12)
+fitB4 <- sarima(metro.ts, 1, 0, 0, 0, 1, 1, 12)
 # Good residual ACF but Ljung-Box test fails -> reject
-modelB5 <- sarima(metro.ts, 2, 0, 0, 0, 1, 1, 12) 
+fitB5 <- sarima(metro.ts, 2, 0, 0, 0, 1, 1, 12) 
 # Good residual ACF and Ljung-Box -> accept
-modelB6 <- sarima(metro.ts, 3, 0, 0, 0, 1, 1, 12)
-# There is not much improvement from model14
-# So the order of ordinary AR may be too high in modelB6
-# Conclusion: modelB5 may be a better choice because it is simpler -> accept
+fitB6 <- sarima(metro.ts, 3, 0, 0, 0, 1, 1, 12)
+# There is not much improvement from fitB5
+# fitB5 may be a better choice because it is simpler 
+# However, I do not have evidence based on only ACF residual and Ljung-Box test
+# so I preserve this model -> accept
 
 # Adding both ordinary AR and MA
-modelB7 <- sarima(metro.ts, 2, 0, 1, 0, 1, 1, 12)
-# Not much improvement from modelB5 -> accept
-modelB8 <- sarima(metro.ts, 2, 0, 2, 0, 1, 1, 12)
-# Not much improvement from modelB5 -> reject
+# Accept all models because I only consider residual ACF and Ljung-Box result here
+fitB7 <- sarima(metro.ts, 1, 0, 1, 0, 1, 1, 12)
+fitB8 <- sarima(metro.ts, 2, 0, 1, 0, 1, 1, 12)
+fitB9 <- sarima(metro.ts, 1, 0, 2, 0, 1, 1, 12)
+# fitB10 can not be fitted(NaNs produced). I don't know why so I skip this model in the final paper
+# fitB10 <- sarima(metro.ts, 2, 0, 2, 0, 1, 1, 12)
 
 
-# Conclusion in model fitting:
+# ---------------------------------------------------------------------
+# Part 3. Parameter Estimation
+
+# Match names of fitted model in source code with final paper
+# fitA4 = ModelA1
+# fitA6 = ModelA2
+
+# fitB5 = ModelB1
+# fitB7 = ModelB2
+
 # From perspective 1.
-modelA4$AIC # 31.84105
-modelA5$AIC # 31.84204
-modelA6$AIC # 31.83081  
+
+# ARIMA(2, 0, 0)*(2, 1, 0) 
+fitA4 # Pass parameter estimation -> Accept
+
+# ARIMA(3, 0, 0)*(2, 1, 0) 
+fitA5 # Fail parameter estimation at AR3 -> Reject
+
+# ARIMA(1, 0, 1)*(2, 1, 0) 
+fitA6 # Pass parameter estimation -> Accept
+# ARIMA(2, 0, 1)*(2, 1, 0) 
+fitA7 # Fail parameter estimation -> Reject
+# ARIMA(1, 0, 2)*(2, 1, 0) 
+fitA8 # Fail parameter estimation -> Reject
+# ARIMA(2, 0, 2)*(2, 1, 0) 
+fitA9 # Fail parameter estimation -> Reject
+
 
 # From perspective 2.
-modelB5$AIC # 31.85006
-modelB6$AIC # 31.85451
-modelB7$AIC # 31.84526  
+
+# ARIMA(2, 0, 0)*(0, 1, 1) 
+fitB5 # Pass parameter estimation -> Accept
+
+# ARIMA(3, 0, 0)*(0, 1, 1) 
+fitB6 # Fail parameter estimation at AR3 -> Reject
+
+# ARIMA(1, 0, 1)*(0, 1, 1) 
+fitB7 # Pass parameter estimation -> Accept
+# ARIMA(2, 0, 1)*(0, 1, 1) 
+fitB8 # Fail parameter estimation at AR3 -> Reject
+# ARIMA(1, 0, 2)*(0, 1, 1) 
+fitB9 # Fail parameter estimation at AR3 -> Reject
 
 # ---------------------------------------------------------------------
 
-# Part 3. Prediction
+# Part 4. Model Selection using AIC
+
+fitA4$AIC #31.84105
+fitA6$AIC #31.8302 <-
+fitB5$AIC #31.85006
+fitB7$AIC #31.83999
+
+# ---------------------------------------------------------------------
+
+# Part 5. Prediction
 #forecast
 fcastA4 <- sarima.for(metro.ts, n.ahead = 12, 2, 0, 0, 2, 1, 0, 12)
-fcastA5 <- sarima.for(metro.ts, n.ahead = 12, 3, 0, 0, 2, 1, 0, 12)
-fcastA6 <- sarima.for(metro.ts, n.ahead = 12, 2, 0, 1, 2, 1, 0, 12)
+fcastA6 <- sarima.for(metro.ts, n.ahead = 12, 1, 0, 1, 2, 1, 0, 12)
 fcastB5 <- sarima.for(metro.ts, n.ahead = 12, 2, 0, 0, 0, 1, 1, 12)
-fcastB6 <- sarima.for(metro.ts, n.ahead = 12, 3, 0, 0, 0, 1, 1, 12)
-fcastB7 <- sarima.for(metro.ts, n.ahead = 12, 2, 0, 1, 0, 1, 1, 12)
+fcastB7 <- sarima.for(metro.ts, n.ahead = 12, 1, 0, 1, 0, 1, 1, 12)
 m.ts <- ts(metro[1:264,2], start=c(1998, 1), frequency=12)
 lines(m.ts) #compare to actual values
 
 test_data <- unlist(metro[253:264, 2], use.names=FALSE)
 #MSE is too large
 RMSE(test_data, fcastA4$pred) # 1738694
-RMSE(test_data, fcastA5$pred) # 1724152 <-
-RMSE(test_data, fcastA6$pred) # 1691764
+RMSE(test_data, fcastA6$pred) # 1699324
 RMSE(test_data, fcastB5$pred) # 1881868
-RMSE(test_data, fcastB6$pred) # 1862180 <-
-RMSE(test_data, fcastB7$pred) # 1790835
+RMSE(test_data, fcastB7$pred) # 1820581
