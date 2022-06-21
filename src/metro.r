@@ -1,5 +1,5 @@
-setwd("/home/loijilai/CS-hub/myR/time-series/time-series-final-project")
-#setwd("D:/WEN/1102course/Time Series Analysis/project/time-series-final-project")
+#setwd("/home/loijilai/CS-hub/myR/time-series/time-series-final-project")
+setwd("D:/WEN/1102course/Time Series Analysis/project/time-series-final-project")
 # download from: https://data.taipei/dataset/detail?id=a0183350-7951-4f4b-993d-0e8ebae04b4c
 library("tidyverse")
 library("astsa")
@@ -18,9 +18,9 @@ plot(originalts)
 
 # if only do seasonal differencing
 sdoriginalts <- diff(originalts, 12)
-plot(sdoriginalts)
+plot(sdoriginalts, main = 'Time Series Plot of data (d=0, D=1)')
 adf.test(sdoriginalts) #p-value = 0.0165 < 0.05, reject H0: non-stationary
-acf2(sdoriginalts)
+acf2(sdoriginalts, main = 'ACF and PACF of data (d=0, D=1)')
 #only doing seasonal differecing seems an acceptable choice
 
 # ---------------------------------------------------------------------
@@ -140,12 +140,12 @@ fitB7$AIC #31.83999
 
 # Part 5. Prediction
 #forecast
-fcastA4 <- sarima.for(metro.ts, n.ahead = 12, 2, 0, 0, 2, 1, 0, 12)
-fcastA6 <- sarima.for(metro.ts, n.ahead = 12, 1, 0, 1, 2, 1, 0, 12)
+fcastA4 <- sarima.for(metro.ts, n.ahead = 12, 2, 0, 0, 2, 1, 0, 12, pch=NA, col='gray20', main='Model A1')
+fcastA6 <- sarima.for(metro.ts, n.ahead = 12, 1, 0, 1, 2, 1, 0, 12, pch=NA, col='gray20', main='Model A2')
 fcastB5 <- sarima.for(metro.ts, n.ahead = 12, 2, 0, 0, 0, 1, 1, 12)
 fcastB7 <- sarima.for(metro.ts, n.ahead = 12, 1, 0, 1, 0, 1, 1, 12)
-m.ts <- ts(metro[1:264,2], start=c(1998, 1), frequency=12)
-lines(m.ts) #compare to actual values
+m.ts <- ts(metro[253:264,2], start=c(2019, 1), frequency=12)
+points(m.ts, col='gray20') #compare to actual values
 
 test_data <- unlist(metro[253:264, 2], use.names=FALSE)
 #MSE is too large
@@ -153,3 +153,10 @@ RMSE(test_data, fcastA4$pred) # 1738694
 RMSE(test_data, fcastA6$pred) # 1699324
 RMSE(test_data, fcastB5$pred) # 1881868
 RMSE(test_data, fcastB7$pred) # 1820581
+
+#for prediction interval
+a4u <- fcastA4$pred + 1.96*fcastA4$se
+a4l <- fcastA4$pred - 1.96*fcastA4$se
+
+a6u <- fcastA6$pred + 1.96*fcastA4$se
+a6l <- fcastA6$pred - 1.96*fcastA6$se
